@@ -1,13 +1,12 @@
 name: Unified Stream
 
 on:
-  workflow_dispatch:
-
+  workflow_dispatch: 
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
-# GitHub Actions ko stream.json update karne aur push karne ki permission dene ke liye
+# Permissions required to update and push stream.json back to repo
 permissions:
   contents: write
 
@@ -19,20 +18,20 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0 # Full git history pull karega taaki status write ke baad push fail na ho
+          fetch-depth: 0 # Full history pull taaki push conflict na ho
 
-      # --- CRITICAL STEP: 5-6 GB Files Ke Liye Space Khali Karna ---
+      # --- CRITICAL: 25GB+ space khali karne ke liye step ---
       - name: Free Disk Space for Heavy Videos
         run: |
           echo "=== BEFORE CLEANING ==="
           df -h
-          echo "Cleaning up unnecessary large directories (Android, .NET, GHC)..."
+          echo "Removing un-used large directories..."
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf /opt/ghc
           sudo rm -rf "/usr/local/share/boost"
           echo "=== AFTER CLEANING ==="
-          df -h # Isse aapko logs me dikh jayega ki kitni space khali hui (approx 25GB+ free)
+          df -h
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -48,46 +47,18 @@ jobs:
         run: |
           git pull origin ${GITHUB_REF_NAME} --rebase
 
-      - name: Install and Start Cloudflare WARP Official Client
-        run: |
-            # 1. Cloudflare gpg key aur official repo add karna
-            curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
-            echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
-            
-            # 2. WARP client install karna
-            sudo apt-get update
-            sudo apt-get install -y cloudflare-warp
-            
-            # 3. Service background me active karna
-            sudo systemctl start warp-svc
-            sleep 3
-            
-            # 4. Terms of Service accept aur register karna
-            export WARP_ACCEPT_TOS=1
-            warp-cli --accept-tos registration new || warp-cli registration new
-            
-            # 5. Client ko Local Proxy Mode (Port 40000) par connect karna
-            warp-cli --accept-tos mode proxy || warp-cli mode proxy
-            warp-cli --accept-tos connect || warp-cli connect
-            
-            # 6. Proxy connection handshake wait aur status log
-            sleep 5
-            warp-cli --accept-tos status || warp-cli status
-            echo "[OK] Cloudflare WARP is running on local proxy port 40000"
-
+      # --- FFmpeg ke sath aria2 (High speed engine) install kiya ---
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg
-          pip install yt-dlp python-dotenv # yt-dlp lagaya download ke liye, requests hata diya kyunki ab local chalega
+          sudo apt-get install -y ffmpeg aria2
+          pip install yt-dlp python-dotenv
 
       - name: Execute Kick Stream
         env:
           KICK_RTMP_URL: ${{ secrets.KICK_RTMP_URL }}
           KICK_STREAM_KEY: ${{ secrets.KICK_STREAM_KEY }}
-          HTTP_PROXY: http://127.0.0.1:40000
-          HTTPS_PROXY: http://127.0.0.1:40000
-        run: python unified_stream.py # Isko 'unified_stream.py' par point kar diya hai jo local cache use karega
+        run: python unified_stream.py
 
       - name: Commit and Push Changes (Update stream.json Status)
         run: |

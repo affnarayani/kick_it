@@ -25,7 +25,6 @@ def get_next_target():
     
     target_index = None
     for i, item in enumerate(data):
-        # Ab hum 'uploaded' flag par nahi, seedhe 'streamed' flag par depend hain
         if not item.get("streamed", False):
             target_index = i
             break
@@ -38,23 +37,27 @@ def get_next_target():
 
 def update_json_status(data, index):
     data[index]["streamed"] = True
-    # Ab 'uploaded' flag ki zaroorat nahi hai, fir bhi compatibility ke liye True rakh sakte hain
-    data[index]["uploaded"] = True 
+    data[index]["uploaded"] = True  # Backwards compatibility ke liye
     with open(JSON_FILE, 'w') as f:
         json.dump(data, f, indent=4)
     print("✅ JSON updated successfully.")
 
 def start_pipeline():
-    # 1. JSON check aur target video lena
     json_data, index = get_next_target()
     yt_url = json_data[index]["url"]
     
-    # 2. Local Disk par download shuru (yt-dlp)
-    print(f"Starting Download directly to GitHub Runner: {yt_url}")
+    # --- ARIA2C HIGH SPEED ENGINE OPTIONS ---
+    print(f"Starting Multi-threaded Download directly to GitHub Runner: {yt_url}")
     ydl_opts = {
         'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
         'outtmpl': LOCAL_VIDEO_FILE,
-        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        'external_downloader': 'aria2c',
+        'external_downloader_args': [
+            '--min-split-size=1M',
+            '--max-connection-per-server=8', # 8 parallel connections to bypass throttling
+            '--split=8',
+            '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+        ],
         'extractor_args': {
             'youtube': {
                 'player_client': 'web',
@@ -67,18 +70,18 @@ def start_pipeline():
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([yt_url])
-        print("✅ Download Complete! File saved locally on Runner.")
+        print("✅ High-Speed Download Complete!")
     except Exception as e:
         print(f"Download Error: {e}")
         sys.exit(1)
 
-    # 3. Stream to Kick using Local File (No internet buffering hassle)
+    # --- KICK STREAM ENGINE VIA LOCAL STORAGE ---
     full_rtmp_path = f"{KICK_RTMP_URL}{KICK_STREAM_KEY}"
-    print(f"Starting Stream to Kick from local file...")
+    print(f"Starting Stream to Kick from 100% stable local cache...")
     
     command = [
         'ffmpeg', '-re',
-        '-i', LOCAL_VIDEO_FILE,  # <--- Internet URL ki jagah 100% LOCAL FILE!
+        '-i', LOCAL_VIDEO_FILE,  # Direct local block read (No online lag)
         '-c:v', 'libx264',
         '-pix_fmt', 'yuv420p',
         '-profile:v', 'main',
@@ -86,7 +89,7 @@ def start_pipeline():
         '-b:v', '8000k',
         '-maxrate', '8000k',
         '-minrate', '8000k',
-        '-bufsize', '16000k', # Good buffer for encoder stability
+        '-bufsize', '16000k',
         '-g', '120',
         '-r', '60',
         '-s', '1920x1080',
@@ -97,10 +100,10 @@ def start_pipeline():
     try:
         process = subprocess.Popen(command, stdin=subprocess.PIPE)
 
-        # 4 ghante (14400 seconds) ka timer setup
+        # 4 Hours (14400 seconds) streaming countdown timer
         def stop_process():
             if process.poll() is None:
-                print("\n4 ghante pure ho gaye, FFmpeg ko gracefully band kar rahe hain...")
+                print("\n[TIMER] 4 Hours completed! Gracefully closing FFmpeg...")
                 try:
                     process.stdin.write(b'q')
                     process.stdin.flush()
@@ -110,24 +113,24 @@ def start_pipeline():
         timer = threading.Timer(60, stop_process)
         timer.start()
 
-        # Process khatam hone ka wait karein
+        # Wait until FFmpeg completes its operation
         process.wait()
         timer.cancel()
         
         if process.returncode == 0:
             update_json_status(json_data, index)
-            print("Streaming successfully khatam hui.")
+            print("Streaming successfully finished.")
         else:
-            print(f"Streaming exit code {process.returncode} ke saath band hui.")
+            print(f"Streaming exited with code: {process.returncode}")
             
     except Exception as e:
         print(f"Streaming Error: {e}")
         
     finally:
-        # Cleanup: Har haal me local 6GB ki file runner se delete karo taaki space clear rahe
+        # Secure cleanup: Runner space release policy
         if os.path.exists(LOCAL_VIDEO_FILE):
             os.remove(LOCAL_VIDEO_FILE)
-            print("Temporary local video cache cleared from runner.")
+            print("Temporary local cached file successfully cleaned up from runner.")
 
 if __name__ == "__main__":
     start_pipeline()
