@@ -25,4 +25,4 @@ jobs:
         run: |
           echo "[INFO] Starting python script..."
           python wait.py
-          echo "[OK] Script completed after 5 minutes."
+          echo "[OK] Script completed after 15 minutes."
