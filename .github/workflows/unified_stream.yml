@@ -1,0 +1,72 @@
+name: Unified Stream
+
+on:
+  workflow_dispatch:
+
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+# GitHub Actions ko stream.json update karne aur push karne ki permission dene ke liye
+permissions:
+  contents: write
+
+jobs:
+  run-stream:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # Full git history pull karega taaki status write ke baad push fail na ho
+
+      # --- CRITICAL STEP: 5-6 GB Files Ke Liye Space Khali Karna ---
+      - name: Free Disk Space for Heavy Videos
+        run: |
+          echo "=== BEFORE CLEANING ==="
+          df -h
+          echo "Cleaning up unnecessary large directories (Android, .NET, GHC)..."
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          echo "=== AFTER CLEANING ==="
+          df -h # Isse aapko logs me dikh jayega ki kitni space khali hui (approx 25GB+ free)
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Pull Latest Changes (Maintain Persistence)
+        run: |
+          git pull origin ${GITHUB_REF_NAME} --rebase
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          pip install yt-dlp python-dotenv # yt-dlp lagaya download ke liye, requests hata diya kyunki ab local chalega
+
+      - name: Execute Kick Stream
+        env:
+          KICK_RTMP_URL: ${{ secrets.KICK_RTMP_URL }}
+          KICK_STREAM_KEY: ${{ secrets.KICK_STREAM_KEY }}
+        run: python unified_stream.py # Isko 'unified_stream.py' par point kar diya hai jo local cache use karega
+
+      - name: Commit and Push Changes (Update stream.json Status)
+        run: |
+          git add stream.json  
+          if git diff --staged --quiet; then
+            echo "[INFO] No videos were streamed or no status changes. Skipping push."
+          else
+            echo "[OK] Stream status updated in json. Committing and pushing..."
+            git commit -m "Automated: Update stream.json status after Kick stream [skip ci]"
+            git push origin ${GITHUB_REF_NAME}
+          fi
