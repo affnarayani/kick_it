@@ -3,10 +3,11 @@ name: Unified Stream
 on:
   workflow_dispatch: 
 
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
-# Permissions required to update and push stream.json back to repo
+# GitHub Actions ko stream.json update karne aur push karne ki permission dene ke liye
 permissions:
   contents: write
 
@@ -18,20 +19,20 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0 # Full history pull taaki push conflict na ho
+          fetch-depth: 0 # Full git history pull karega taaki status write ke baad push fail na ho
 
-      # --- CRITICAL: 25GB+ space khali karne ke liye step ---
+      # --- CRITICAL STEP: 5-6 GB Files Ke Liye Space Khali Karna ---
       - name: Free Disk Space for Heavy Videos
         run: |
           echo "=== BEFORE CLEANING ==="
           df -h
-          echo "Removing un-used large directories..."
+          echo "Cleaning up unnecessary large directories (Android, .NET, GHC)..."
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf /opt/ghc
           sudo rm -rf "/usr/local/share/boost"
           echo "=== AFTER CLEANING ==="
-          df -h
+          df -h # Isse aapko logs me dikh jayega ki kitni space khali hui (approx 25GB+ free)
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -46,13 +47,6 @@ jobs:
       - name: Pull Latest Changes (Maintain Persistence)
         run: |
           git pull origin ${GITHUB_REF_NAME} --rebase
-
-      # --- FFmpeg ke sath aria2 (High speed engine) install kiya ---
-      - name: Install Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg aria2 nodejs
-          pip install yt-dlp python-dotenv
 
       - name: Install and Start Cloudflare WARP Official Client
         run: |
@@ -80,6 +74,12 @@ jobs:
           sleep 5
           warp-cli --accept-tos status || warp-cli status
           echo "[OK] Cloudflare WARP is running on local proxy port 40000"
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          pip install yt-dlp python-dotenv # yt-dlp lagaya download ke liye, requests hata diya kyunki ab local chalega
 
       - name: Execute Kick Stream
         env:
