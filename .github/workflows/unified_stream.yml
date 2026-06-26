@@ -85,6 +85,8 @@ jobs:
         env:
           KICK_RTMP_URL: ${{ secrets.KICK_RTMP_URL }}
           KICK_STREAM_KEY: ${{ secrets.KICK_STREAM_KEY }}
+          HTTP_PROXY: http://127.0.0.1:40000
+          HTTPS_PROXY: http://127.0.0.1:40000
         run: python unified_stream.py # Isko 'unified_stream.py' par point kar diya hai jo local cache use karega
 
       - name: Commit and Push Changes (Update stream.json Status)
