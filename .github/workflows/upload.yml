@@ -1,18 +1,14 @@
-name: YT to HF Uploader
-on: [workflow_dispatch] # Manual button se run hoga
+name: YT to HF Auto-Stream
+on: [workflow_dispatch]
 
 jobs:
-  upload:
+  run-script:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.11'
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-      - name: Run Upload
+      - uses: actions/checkout@v3
+      - name: Install Dependencies
+        run: pip install yt-dlp huggingface_hub
+      - name: Execute Upload
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: python upload_script.py
