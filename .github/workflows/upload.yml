@@ -7,7 +7,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Install Dependencies
-        run: pip install yt-dlp huggingface_hub
+        run: pip install yt-dlp huggingface_hub python-dotenv
       - name: Execute Upload
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
