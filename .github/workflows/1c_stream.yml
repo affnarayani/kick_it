@@ -48,10 +48,7 @@ jobs:
         env:
           KICK_RTMP_URL: ${{ secrets.KICK_RTMP_URL }}
           KICK_STREAM_KEY: ${{ secrets.KICK_STREAM_KEY }}
-          # Agar aap metadata automation use kar rahe hain to inko bhi GitHub Secrets me add kar dena:
-          # CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
-          # KICK_API_TOKEN: ${{ secrets.KICK_API_TOKEN }}
-        run: python find_id.py # Yahan apne main streaming python file ka sahi naam likhein (e.g., find_id.py ya kick_stream.py)
+        run: python k_stream.py # Yahan apne main streaming python file ka sahi naam likhein (e.g., find_id.py ya kick_stream.py)
 
       - name: Commit and Push Changes (Update stream.json Status)
         run: |
