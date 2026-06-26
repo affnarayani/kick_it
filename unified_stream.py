@@ -4,6 +4,7 @@ import os
 import sys
 import threading
 import yt_dlp
+import time
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -58,7 +59,7 @@ def start_pipeline():
                 print(f"Timeout cleanup error: {e}")
                 
         # Main aur sub-processes ko immediate terminate karne ke liye os._exit use kiya hai
-        os._exit(1)
+        os._exit(0)
 
     # Timer ko pipeline ke bilkul start mein shuru kar rahe hain
     global_timer = threading.Timer(TOTAL_TIMEOUT_SECONDS, force_exit_on_timeout)
@@ -96,6 +97,9 @@ def start_pipeline():
         # 3. Stream to Kick using Local File
         full_rtmp_path = f"{KICK_RTMP_URL}{KICK_STREAM_KEY}"
         print(f"Starting Stream to Kick from local file...")
+
+        print("⏳ 22 seconds ka wait kar rahe hain...")
+        time.sleep(22)
         
         command = [
             'ffmpeg', '-re',
