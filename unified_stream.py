@@ -100,8 +100,8 @@ def start_pipeline():
             sys.exit(1)
 
         # 4. 180 SECONDS SLEEP BETWEEN DOWNLOAD AND STREAM
-        print("⏳ Download poora ho gaya hai. Streaming shuru karne se pehle 12 seconds ka wait kar rahe hain...", flush=True)
-        time.sleep(12)
+        print("⏳ Download poora ho gaya hai. Streaming shuru karne se pehle 300 seconds ka wait kar rahe hain...", flush=True)
+        time.sleep(300)
         print("✅ Sleep time poora hua. Ab streaming shuru ho rahi hai...", flush=True)
 
         # 5. Stream to Kick using Local File
