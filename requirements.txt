@@ -1,3 +1,5 @@
 yt-dlp
 huggingface_hub
 python-dotenv
+playwright
+playwright-stealth
