@@ -1,2 +1,3 @@
 yt-dlp
 huggingface_hub
+python-dotenv
