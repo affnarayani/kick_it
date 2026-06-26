@@ -1,0 +1,28 @@
+name: 1B. Wait
+
+on:
+  workflow_dispatch: # Taaki manual button bhi rahe
+  workflow_run:
+    workflows: ["1A. Upload"]
+    types:
+      - completed
+
+
+jobs:
+  run-sleep-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Run Sleep Script
+        run: |
+          echo "[INFO] Starting python script..."
+          python wait.py
+          echo "[OK] Script completed after 5 minutes."

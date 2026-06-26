@@ -47,8 +47,8 @@ def load_and_process_json():
     if target_index > 0:
         previous_item = data[target_index - 1]
         if not previous_item.get("streamed", False):
-            print(f"ERROR: Pichla video ({previous_item.get('url')}) abhi tak stream nahi hua hai! Script terminate ho rahi hai.")
-            sys.exit(1)
+            print(f"INFO: Pichla video ({previous_item.get('url')}) abhi tak stream nahi hua hai! Script terminate ho rahi hai.")
+            sys.exit(0)
             
     # Agar conditions pass ho gayi hain toh target URL aur data return karein
     return data, target_index
