@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # --- CONFIGURATION ---
-YT_URL = "https://www.youtube.com/watch?v=InJ8BdFyQ1o"
+YT_URL = "https://www.youtube.com/watch?v=4P_miyGJb5A"
 REPO_ID = "ujjawal247/stream-repo"
 FILE_NAME = "background_video.mp4"
 HF_TOKEN = os.getenv("HF_TOKEN")
