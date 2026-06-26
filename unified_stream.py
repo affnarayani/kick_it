@@ -49,24 +49,23 @@ def start_pipeline():
     # --- ARIA2C HIGH SPEED ENGINE OPTIONS ---
     print(f"Starting Multi-threaded Download directly to GitHub Runner: {yt_url}")
     ydl_opts = {
-        # Best formats check karne ke liye stable format string
         'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
         'outtmpl': LOCAL_VIDEO_FILE,
         
-        # Safe Multi-threading Engine Configuration
+        # Aria2c configuration with safer connections
         'external_downloader': 'aria2c',
         'external_downloader_args': [
-            '--min-split-size=4M',            # Split size badha diya taaki bohot chote pieces na banein
-            '--max-connection-per-server=4',  # 8 se kam karke 4 kiya (403 Bypass karne ke liye optimized)
-            '--split=4',                      # Total 4 threads
+            '--min-split-size=4M',
+            '--max-connection-per-server=4', 
+            '--split=4',
             '--no-netrc=true',
-            '--check-certificate=false'       # SSL validation errors se bachne ke liye
+            '--check-certificate=false'
         ],
         
-        # YouTube Extraction Ke Liye Sabse Naya Stable Fake Client Spoofing
+        # YouTube Extraction with proper list format for ios client
         'extractor_args': {
             'youtube': {
-                'player_client': 'ios',       # 'web' se hamesha 403 aata hai, 'ios' client sabse stable hai
+                'player_client': ['ios'],  # <--- Isko list bracket [] me kar diya hai
                 'skip': ['dash', 'hls']
             }
         },

@@ -51,7 +51,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg aria2
+          sudo apt-get install -y ffmpeg aria2 nodejs
           pip install yt-dlp python-dotenv
 
       - name: Install and Start Cloudflare WARP Official Client
