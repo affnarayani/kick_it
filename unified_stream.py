@@ -68,7 +68,7 @@ def start_pipeline():
             except Exception as e:
                 print(f"Timeout cleanup error: {e}", flush=True)
                 
-        sys.exit(0)
+        os._exit(0)
 
     # Timer ko bilkul shuruwat mein start kar rahe hain
     global_timer = threading.Timer(TOTAL_TIMEOUT_SECONDS, force_exit_on_timeout)
