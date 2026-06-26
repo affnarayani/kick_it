@@ -40,6 +40,9 @@ def stream_video():
     # 1080p 60FPS @ 8000k CBR configuration
     command = [
         'ffmpeg', '-re',
+        '-reconnect', '1',
+        '-reconnect_streamed', '1',
+        '-reconnect_delay_max', '5',
         '-i', video_url,
         # Video Encoding Settings
         '-c:v', 'libx264',
