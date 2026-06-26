@@ -14,7 +14,7 @@ JSON_FILE = "stream.json"
 LOCAL_VIDEO_FILE = "local_cache_video.mp4"
 KICK_RTMP_URL = os.getenv("KICK_RTMP_URL")
 KICK_STREAM_KEY = os.getenv("KICK_STREAM_KEY")
-TOTAL_TIMEOUT_SECONDS = 120  # 4 Ghante (Downloading + Sleep + Streaming mila kar)
+TOTAL_TIMEOUT_SECONDS = 14400  # 4 Ghante (Downloading + Sleep + Streaming mila kar)
 # ---------------------
 
 def get_next_target():
