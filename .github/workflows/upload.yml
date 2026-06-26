@@ -68,3 +68,14 @@ jobs:
           HTTP_PROXY: http://127.0.0.1:40000
           HTTPS_PROXY: http://127.0.0.1:40000
         run: python upload_script.py
+
+      - name: Commit and Push Changes (If updated)
+        run: |
+          git add stream.json  
+          if git diff --staged --quiet; then
+            echo "[INFO] No changes detected (Content might have been already posted or execution skipped). Skipping push."
+          else
+            echo "[OK] Changes detected. Committing and pushing updates..."
+            git commit -m "Automated: Update article and topics list [skip ci]"
+            git push origin ${GITHUB_REF_NAME}
+          fi
