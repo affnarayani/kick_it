@@ -2,10 +2,10 @@ name: 1A. Unified Stream
 
 on:
   workflow_dispatch: 
-  workflow_run:
-    workflows: ["1B. Between Delay"]
-    types:
-      - completed
+  # workflow_run:
+  #   workflows: ["1B. Between Delay"]
+  #   types:
+  #     - completed
 
 
 env:
@@ -102,5 +102,6 @@ jobs:
           else
             echo "[OK] Stream status updated in json. Committing and pushing..."
             git commit -m "Automated: Update stream.json status after Kick stream [skip ci]"
+            git pull origin ${GITHUB_REF_NAME} --rebase
             git push origin ${GITHUB_REF_NAME}
           fi

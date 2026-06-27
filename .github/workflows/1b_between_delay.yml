@@ -2,10 +2,10 @@ name: 1B. Between Delay
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: ["1A. Unified Stream"]
-    types:
-      - completed
+  # workflow_run:
+  #   workflows: ["1A. Unified Stream"]
+  #   types:
+  #     - completed
 
 jobs:
   run-script:
