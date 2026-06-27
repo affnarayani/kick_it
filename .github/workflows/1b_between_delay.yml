@@ -2,15 +2,15 @@ name: 1B. Between Delay
 
 on:
   workflow_dispatch:
-  # workflow_run:
-  #   workflows: ["1A. Unified Stream"]
-  #   types:
-  #     - completed
+  workflow_run:
+    workflows: ["1A. Unified Stream"]
+    types:
+      - completed
 
 jobs:
   run-script:
     runs-on: ubuntu-latest
-    # if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     steps:
     - name: Checkout repository code
