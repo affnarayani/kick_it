@@ -24,7 +24,8 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0 # Full git history pull karega taaki status write ke baad push fail na ho
+          fetch-depth: 0
+          token: ${{ secrets.PAT_TOKEN }}
 
       # --- CRITICAL STEP: 5-6 GB Files Ke Liye Space Khali Karna ---
       - name: Free Disk Space for Heavy Videos
