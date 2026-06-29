@@ -55,7 +55,9 @@
         "uploaded": true
     },
     {
-        "url": "https://www.youtube.com/watch?v=04oFdFGEPDI"
+        "url": "https://www.youtube.com/watch?v=04oFdFGEPDI",
+        "streamed": true,
+        "uploaded": true
     },
     {
         "url": "https://www.youtube.com/watch?v=WdSHnXK9GfM"
