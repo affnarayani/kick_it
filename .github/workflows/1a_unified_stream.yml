@@ -84,12 +84,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
-          pip install yt-dlp python-dotenv # yt-dlp lagaya download ke liye, requests hata diya kyunki ab local chalega
+          pip install yt-dlp python-dotenv
+          pip install --upgrade yt-dlp python-dotenv
 
       - name: Execute Kick Stream
         env:
           KICK_RTMP_URL: ${{ secrets.KICK_RTMP_URL }}
           KICK_STREAM_KEY: ${{ secrets.KICK_STREAM_KEY }}
+          YT_DLP_XT_ARGS: "youtube:player_client=android,web;skip=dash,hls"
         run: python unified_stream.py
 
       - name: Commit and Push Changes (Update stream.json Status)
