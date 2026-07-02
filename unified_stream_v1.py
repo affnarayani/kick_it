@@ -109,21 +109,22 @@ def start_pipeline():
         print(f"Starting Stream to Kick from local file...", flush=True)
         
         command = [
-        'ffmpeg', '-re',
-        '-i', LOCAL_VIDEO_FILE,
-        '-c:v', 'libx264',
-        '-pix_fmt', 'yuv420p',
-        '-profile:v', 'main',
-        '-preset', 'veryfast',
-        '-b:v', '6000k',       # 8000k se kam kiya
-        '-maxrate', '7000k',   # Max cap lagaya
-        '-bufsize', '14000k',
-        '-g', '120',
-        '-r', '60',
-        '-s', '1920x1080',
-        '-c:a', 'aac', '-b:a', '160k', '-ac', '2',
-        '-f', 'flv', full_rtmp_path
-    ]
+            'ffmpeg', '-re',
+            '-i', LOCAL_VIDEO_FILE,
+            '-c:v', 'libx264',
+            '-pix_fmt', 'yuv420p',
+            '-profile:v', 'main',
+            '-preset', 'veryfast',
+            '-b:v', '8000k',
+            '-maxrate', '8000k',
+            '-minrate', '8000k',
+            '-bufsize', '16000k',
+            '-g', '120',
+            '-r', '60',
+            '-s', '1920x1080',
+            '-c:a', 'aac', '-b:a', '160k', '-ac', '2',
+            '-f', 'flv', full_rtmp_path
+        ]
         
         process = subprocess.Popen(command, stdin=subprocess.PIPE)
         process.wait()
@@ -133,7 +134,6 @@ def start_pipeline():
             print("Streaming successfully khatam hui.", flush=True)
         else:
             print(f"Streaming exit code {process.returncode} ke saath band hui.", flush=True)
-            sys.exit(1)
             
     except Exception as e:
         print(f"Pipeline Error: {e}", flush=True)
