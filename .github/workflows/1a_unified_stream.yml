@@ -44,6 +44,11 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install Node.js (for yt-dlp JS Runtime)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
       - name: Configure Git
         run: |
           git config --global user.name "github-actions[bot]"
@@ -79,11 +84,6 @@ jobs:
           
           # 7. Verify ki pure system ka IP change hua ya nahi
           curl https://cloudflare.com/cdn-cgi/trace
-
-      - name: Install Node.js (for yt-dlp JS Runtime)
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24'
 
       - name: Install Dependencies
         run: |
