@@ -83,7 +83,8 @@ def start_pipeline():
             'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['web_creator', 'web'],  # Ye clients zyada reliable hain
+                    # Alag-alag clients ka combination try karein
+                    'player_client': ['ios', 'android', 'web'],
                 }
             },
             'quiet': False,
