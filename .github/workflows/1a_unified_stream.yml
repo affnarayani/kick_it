@@ -80,6 +80,11 @@ jobs:
           # 7. Verify ki pure system ka IP change hua ya nahi
           curl https://cloudflare.com/cdn-cgi/trace
 
+      - name: Install Node.js (for yt-dlp JS Runtime)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Install Dependencies
         run: |
           sudo apt-get update

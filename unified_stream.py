@@ -83,10 +83,12 @@ def start_pipeline():
             'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
             'extractor_args': {
                 'youtube': {
-                    'player_client': 'web',
-                    'skip': ['dash', 'hls']
+                    'player_client': ['web'],  # List format use karein
+                    # 'skip' ki jagah default extraction chalne dein
                 }
             },
+            # Explicitly yt-dlp ko batayein ki actions me available Node use kare
+            'js_runtimes': ['node'], 
             'quiet': False,
         }
         
