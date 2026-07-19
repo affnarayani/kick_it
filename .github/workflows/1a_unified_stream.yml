@@ -84,13 +84,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
-          pip install yt-dlp python-dotenv
-          pip install --upgrade yt-dlp python-dotenv
+          pip install yt-dlp python-dotenv requests
+          pip install --upgrade yt-dlp python-dotenv requests
 
       - name: Execute Kick Stream
         env:
           KICK_RTMP_URL: ${{ secrets.KICK_RTMP_URL }}
           KICK_STREAM_KEY: ${{ secrets.KICK_STREAM_KEY }}
+          IMGBBB_API_KEY: ${{ secrets.IMGBBB_API_KEY }}
           YT_DLP_XT_ARGS: "youtube:player_client=android,web;skip=dash,hls"
         run: python unified_stream.py
 
