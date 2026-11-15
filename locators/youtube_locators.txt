@@ -1,0 +1,9 @@
+# YouTube Playlist Scraper Locators
+# These locators are used by scrape_playlist.py
+
+# Main video link selector - finds all anchor tags containing YouTube watch URLs
+video_link_selector = 'a[href*="/watch?v="]'
+
+# Fallback selectors for the same target element (video title link)
+video_link_selector = 'a#video-title'
+video_link_selector = 'ytd-playlist-video-renderer a#video-title'

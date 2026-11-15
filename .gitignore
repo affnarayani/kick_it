@@ -2,3 +2,7 @@
 /temp/
 encrypt.py
 .venv/
+local_cache_video.mp4
+error/error_screenshot.png
+__pycache__/
+*.pyc

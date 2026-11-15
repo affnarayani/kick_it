@@ -1,0 +1,51 @@
+{
+    "json_file": "json/stream.json",
+    "local_video_file": "local_cache_video.mp4",
+    "total_timeout_seconds": 14400,
+    "download": {
+        "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "extractor_args": {
+            "youtube": {
+                "player_client": "web",
+                "skip": ["dash", "hls"]
+            }
+        }
+    },
+    "stream": {
+        "sleep_between_download_and_stream": 300,
+        "ffmpeg": {
+            "video_codec": "libx264",
+            "pixel_format": "yuv420p",
+            "profile": "main",
+            "preset": "veryfast",
+            "video_bitrate": "6000k",
+            "max_rate": "7000k",
+            "buffer_size": "14000k",
+            "gop_size": 120,
+            "frame_rate": 60,
+            "resolution": "1920x1080",
+            "audio_codec": "aac",
+            "audio_bitrate": "160k",
+            "audio_channels": 2,
+            "format": "flv"
+        }
+    },
+    "scraper": {
+        "playlist_url": "https://www.youtube.com/playlist?list=PLB6x_4-4tcYPRf5w1V8beLjL3NTdmEi1K",
+        "headless": false,
+        "output_file": "json/stream.json",
+        "browser_args": ["--start-maximized", "--disable-blink-features=AutomationControlled", "--no-sandbox"],
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "initial_wait_ms": 5000,
+        "scroll_wait_ms": 3000,
+        "double_check_wait_ms": 2000
+    },
+    "error": {
+        "screenshot_path": "error/error_screenshot.png"
+    },
+    "onlyfiles": {
+        "upload_url": "https://api.onlyfiles.com/v1/upload",
+        "expire_seconds": 172800
+    }
+}

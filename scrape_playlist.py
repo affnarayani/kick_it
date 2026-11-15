@@ -1,32 +1,90 @@
 import json
 import os
 import requests
+from pathlib import Path
 from playwright.sync_api import sync_playwright
 from playwright_stealth import Stealth
+from common.utils import load_config, load_locators
+from common.config_loader import get, get_error_screenshot_path
 
-# ================= CONFIG (Aapka Original URL) =================
-YT_PLAYLIST_URL = "https://www.youtube.com/playlist?list=PLB6x_4-4tcYPRf5w1V8beLjL3NTdmEi1K"
-HEADLESS = False  # True kar sakte hain agar screen nahi dekhni hai
-OUTPUT_FILE = "stream.json"
+# Load configuration
+config = load_config()
+locators = load_locators("youtube_locators.txt")
 
-def upload_to_tmpfiles(screenshot_path):
-    url = "https://tmpfiles.org/api/v1/upload"
-    
-    with open(screenshot_path, "rb") as file:
-        response = requests.post(url, files={"file": file})
-        
-    if response.status_code == 200:
-        res_data = response.json()
-        # Direct view URL banane ke liye '/dl/' replace karte hain
-        page_url = res_data["data"]["url"]
-        direct_url = page_url.replace("tmpfiles.org/", "tmpfiles.org/dl/")
-        print(f"👉 DIRECT LINK (Expires in 2 Hours): {direct_url}")
-        return direct_url
-    else:
-        print(f"[WARNING] Upload Failed: {response.status_code}")
+# Configuration from config.json
+YT_PLAYLIST_URL = get("scraper.playlist_url")
+HEADLESS = get("scraper.headless")
+OUTPUT_FILE = get("scraper.output_file")
+BROWSER_ARGS = get("scraper.browser_args")
+USER_AGENT = get("scraper.user_agent")
+INITIAL_WAIT_MS = get("scraper.initial_wait_ms")
+SCROLL_WAIT_MS = get("scraper.scroll_wait_ms")
+DOUBLE_CHECK_WAIT_MS = get("scraper.double_check_wait_ms")
+
+# Locators from youtube_locators.txt - primary + fallbacks for same target element
+VIDEO_LINK_SELECTORS = locators.get("video_link_selector", ['a[href*="/watch?v="]'])
+
+ERROR_SCREENSHOT_PATH = get_error_screenshot_path()
+
+
+# Onlyfiles upload settings
+ONLYFILES_UPLOAD_URL = get("onlyfiles.upload_url")
+ONLYFILES_EXPIRE = get("onlyfiles.expire_seconds")
+
+
+def capture_error_screenshot(page) -> str:
+    """Capture full-page error screenshot."""
+    try:
+        page.screenshot(path=ERROR_SCREENSHOT_PATH, full_page=True)
+        print(f"[OK] Error screenshot captured: {ERROR_SCREENSHOT_PATH}", flush=True)
+        return ERROR_SCREENSHOT_PATH
+    except Exception as e:
+        print(f"[WARNING] Could not capture error screenshot: {e}", flush=True)
+        return None
+
+
+def upload_to_onlyfiles(screenshot_path: str) -> str:
+    """Upload screenshot to onlyfiles.io."""
+    if not screenshot_path:
         return None
     
-# ================= MAIN SCRAPER =================
+    try:
+        with open(screenshot_path, "rb") as file:
+            response = requests.post(
+                ONLYFILES_UPLOAD_URL, 
+                files={"file": file}, 
+                data={"expire": ONLYFILES_EXPIRE}
+            )
+
+        if response.status_code == 200:
+            res_data = response.json()
+            if res_data.get("status"):
+                direct_url = res_data["data"]["file"]["url"]["full"]
+                print(f"DIRECT LINK (Expires in 48 Hours): {direct_url}")
+                return direct_url
+            error = res_data.get("error", {})
+            print(f"[WARNING] Upload Failed: {error.get('message', 'Unknown error')}")
+        else:
+            print(f"[WARNING] Upload Failed: {response.status_code}")
+    except Exception as e:
+        print(f"[WARNING] Could not upload screenshot: {e}", flush=True)
+    return None
+
+
+def get_video_elements(page):
+    """
+    Try each selector in order until one returns elements.
+    Returns list of elements from the first successful selector.
+    """
+    for i, selector in enumerate(VIDEO_LINK_SELECTORS):
+        elements = page.query_selector_all(selector)
+        if elements:
+            if i > 0:
+                print(f"Primary selector failed, using fallback {i}: {selector}")
+            return elements
+    return []
+
+
 def run_scraper():
     stealth = Stealth()
     pw_cm = stealth.use_sync(sync_playwright())
@@ -34,38 +92,36 @@ def run_scraper():
 
     if os.path.exists(OUTPUT_FILE):
         open(OUTPUT_FILE, 'w').close()
-        print(f"🧹 Purana JSON data ('{OUTPUT_FILE}') clear kar diya gaya hai.")
+        print(f"Previous JSON data ('{OUTPUT_FILE}') cleared.")
 
     try:
         browser = pw.chromium.launch(
             headless=HEADLESS,
-            args=["--start-maximized", "--disable-blink-features=AutomationControlled", "--no-sandbox"]
+            args=BROWSER_ARGS
         )
 
         context = browser.new_context(
             no_viewport=True,
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+            user_agent=USER_AGENT
         )
         
         page = context.new_page()
-        print(f"🔍 Scanning Playlist: {YT_PLAYLIST_URL}")
+        print(f"Scanning Playlist: {YT_PLAYLIST_URL}")
         
         page.goto(YT_PLAYLIST_URL, wait_until="domcontentloaded")
-        page.wait_for_timeout(5000)  # Initial load ka wait
+        page.wait_for_timeout(INITIAL_WAIT_MS)
 
-        all_links = []      # Strict sequence maintain karega
-        seen_links = set()  # Duplicates check karne ke liye
+        all_links = []
+        seen_links = set()
         last_height = 0
 
-        print("🚀 Scraping started using Index-Filtering...")
+        print("Scraping started using Index-Filtering...")
 
         while True:
-            # Puraane aur naye saare 'a' tags nikalna jisme watch?v= ho
-            elements = page.query_selector_all('a[href*="/watch?v="]')
+            elements = get_video_elements(page)
             
             for el in elements:
                 href = el.get_attribute("href")
-                # CRITICAL FILTER: Sirf wahi link uthana jisme '&index=' ho (yeh sirf main playlist list mein hota hai)
                 if href and "/watch?v=" in href and "&index=" in href:
                     video_id = href.split("v=")[-1].split("&")[0]
                     
@@ -76,45 +132,37 @@ def run_scraper():
                             all_links.append(video_url)
                             seen_links.add(video_url)
 
-            # Smooth Scrolling taaki YouTube links ko DOM mein render kare
             page.evaluate("window.scrollTo(0, document.documentElement.scrollHeight)")
-            page.wait_for_timeout(3000)  # YouTube ko render hone ke liye 3s ka solid time dena
+            page.wait_for_timeout(SCROLL_WAIT_MS)
             
             new_height = page.evaluate("document.documentElement.scrollHeight")
             if new_height == last_height:
-                # Double check to confirm page end
                 page.evaluate("window.scrollTo(0, document.documentElement.scrollHeight)")
-                page.wait_for_timeout(2000)
+                page.wait_for_timeout(DOUBLE_CHECK_WAIT_MS)
                 if page.evaluate("document.documentElement.scrollHeight") == last_height:
                     break  
             last_height = new_height
 
         browser.close()
 
-        # --- SAVE TO JSON ---
         total_videos = len(all_links)
-        print(f"\n✅ Total number of links found: {total_videos}")
+        print(f"\nTotal number of links found: {total_videos}")
 
         json_data = [{"url": link} for link in all_links]
 
         with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
             json.dump(json_data, f, indent=4)
             
-        print(f"Saare naye links {OUTPUT_FILE} mein 100% EXACT SEQUENCE mein save ho gaye hain!")
+        print(f"All new links saved to {OUTPUT_FILE} in 100% EXACT SEQUENCE!")
 
     except Exception as e:
-        print(f"⚠️ Scraper Error: {e}")
+        print(f"Scraper Error: {e}")
         if 'page' in locals() and page:
-            try:
-                screenshot_path = "error_screenshot.png"
-                page.screenshot(path=screenshot_path, full_page=True)
-                print(f"[OK] Error screenshot captured: {screenshot_path}", flush=True)
-                
-                upload_to_tmpfiles(screenshot_path)
-            except Exception as screenshot_err:
-                print(f"[WARNING] Could not capture or upload screenshot: {screenshot_err}", flush=True)
+            screenshot_path = capture_error_screenshot(page)
+            upload_to_onlyfiles(screenshot_path)
     finally:
         pw_cm.__exit__(None, None, None)
+
 
 if __name__ == "__main__":
     run_scraper()
