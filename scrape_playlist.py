@@ -138,6 +138,12 @@ def run_scraper():
                             all_links.append(video_url)
                             seen_links.add(video_url)
 
+                            progress_limit = MAX_VIDEOS if MAX_VIDEOS > 0 else "unlimited"
+                            print(
+                                f"[PROGRESS] Scraped {len(all_links)}/{progress_limit} videos",
+                                flush=True
+                            )
+
                             if MAX_VIDEOS > 0 and len(all_links) >= MAX_VIDEOS:
                                 limit_reached = True
                                 break
