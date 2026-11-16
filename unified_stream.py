@@ -6,7 +6,7 @@ import threading
 import time
 import yt_dlp
 from dotenv import load_dotenv
-from common.utils import load_config, get_error_screenshot_path
+from common.utils import load_config
 
 load_dotenv()
 
