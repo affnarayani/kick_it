@@ -33,6 +33,7 @@
     },
     "scraper": {
         "playlist_url": "https://www.youtube.com/playlist?list=PLJwuLHutaYuJoiLhMqakl9yiiyqLCs1Le",
+        "max_videos": 100,
         "headless": false,
         "output_file": "json/stream.json",
         "browser_args": ["--start-maximized", "--disable-blink-features=AutomationControlled", "--no-sandbox"],
