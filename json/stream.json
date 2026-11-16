@@ -1,6 +1,8 @@
 [
     {
-        "url": "https://www.youtube.com/watch?v=u-P7S1dXN9I"
+        "url": "https://www.youtube.com/watch?v=u-P7S1dXN9I",
+        "streamed": true,
+        "uploaded": true
     },
     {
         "url": "https://www.youtube.com/watch?v=qk_jWxXN3b8"
