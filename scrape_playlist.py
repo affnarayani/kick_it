@@ -13,6 +13,7 @@ locators = load_locators("youtube_locators.txt")
 
 # Configuration from config.json
 YT_PLAYLIST_URL = get("scraper.playlist_url")
+MAX_VIDEOS = int(get("scraper.max_videos") or 0)
 HEADLESS = get("scraper.headless")
 OUTPUT_FILE = get("scraper.output_file")
 BROWSER_ARGS = get("scraper.browser_args")
@@ -116,7 +117,12 @@ def run_scraper():
         last_height = 0
 
         print("Scraping started using Index-Filtering...")
+        if MAX_VIDEOS > 0:
+            print(f"Maximum videos to scrape: {MAX_VIDEOS}")
+        else:
+            print("Maximum videos to scrape: Unlimited (max_videos is 0)")
 
+        limit_reached = False
         while True:
             elements = get_video_elements(page)
             
@@ -131,6 +137,13 @@ def run_scraper():
                         if video_url not in seen_links:
                             all_links.append(video_url)
                             seen_links.add(video_url)
+
+                            if MAX_VIDEOS > 0 and len(all_links) >= MAX_VIDEOS:
+                                limit_reached = True
+                                break
+
+            if limit_reached:
+                break
 
             page.evaluate("window.scrollTo(0, document.documentElement.scrollHeight)")
             page.wait_for_timeout(SCROLL_WAIT_MS)
@@ -147,6 +160,13 @@ def run_scraper():
 
         total_videos = len(all_links)
         print(f"\nTotal number of links found: {total_videos}")
+
+        if MAX_VIDEOS > 0 and total_videos >= MAX_VIDEOS:
+            print(f"[SUCCESS] Configured maximum of {MAX_VIDEOS} videos reached. Scraping stopped successfully.")
+        elif MAX_VIDEOS > 0:
+            print(f"[SUCCESS] Playlist ended before the configured maximum. Found {total_videos} available videos (limit: {MAX_VIDEOS}). Continuing with successful save.")
+        else:
+            print(f"[SUCCESS] Playlist scan completed. Found {total_videos} videos.")
 
         json_data = [{"url": link} for link in all_links]
 
