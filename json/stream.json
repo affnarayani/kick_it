@@ -115,7 +115,9 @@
         "uploaded": true
     },
     {
-        "url": "https://www.youtube.com/watch?v=uzzVujbjMWY"
+        "url": "https://www.youtube.com/watch?v=uzzVujbjMWY",
+        "streamed": true,
+        "uploaded": true
     },
     {
         "url": "https://www.youtube.com/watch?v=fle9AZiLlfQ"
